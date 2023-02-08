@@ -17,21 +17,46 @@ class SmartFrame(tk.Tk):
         self.geometry(f'{self.width}x{self.height}')
         
         self.images = self.getImages()
-        self.image = 0
+        self.image = -1
 
         self.canvas = tk.Canvas(self, width=self.width, height=self.height)
         self.canvas.pack()
         
         self.image_container = self.canvas.create_image(0,0, anchor="nw",image=None)
         
-        self.displayImage()
+        self.iterateImage()
+        
+        # Create prev and next buttons
+        self.prevBtn=self.createButton(int(self.width/3), self.height, 0, 0)
+        self.canvas.tag_bind(self.prevBtn,"<Button-1>", self.prevImage)
+        self.prevBtn=self.createButton(int(self.width/3), self.height, int(self.width*2/3), 0)
+        self.canvas.tag_bind(self.prevBtn,"<Button-1>", self.prevImage)
+        
+    # To get a transparent rectangle on Tkinter, we must make a transparent 
+    # image in Pillow first then display it on the canvas
+    def createButton(self, sizeX, sizeY, posX, posY):
+          alpha = int(0)
+          fill = "yellow"
+          fill = self.winfo_rgb(fill) + (alpha,)
+          image = Image.new('RGBA', (sizeX, sizeY), fill)
+          transparent = ImageTk.PhotoImage(image)
+          return self.canvas.create_image(posX, posY, image=transparent, anchor='nw')
         
     def getImages(self):
         return os.listdir(self.pathToImages)
-        
-    def updateImage(self):
+    
+    def iterateImage(self):
         self.image = (self.image+1)%len(self.images)
         self.displayImage()
+        self.after(self.interval, self.iterateImage)
+        
+    def nextImage(self, event):
+        self.image = (self.image+1)%len(self.images)
+        self.displayImage()
+    
+    def prevImage(self, event):
+        self.image = (self.image-1)%len(self.images)
+        self.displayImage()    
     
     # Convert images into a format which Tkinter can read and then update canvas
     # to display new image
@@ -41,7 +66,6 @@ class SmartFrame(tk.Tk):
         self.dispImage = ImageTk.PhotoImage(tempImage)
         self.canvas.itemconfig(self.image_container,
             image=self.dispImage)
-        self.after(self.interval, self.updateImage)
         
 
 if __name__ == "__main__":
