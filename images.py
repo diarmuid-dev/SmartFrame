@@ -8,6 +8,7 @@ import sys
 class SmartFrame(tk.Tk):
     def __init__(self, pathToImages, seconds):
         super().__init__()
+        self.config(cursor="")
         self.interval = int(seconds)*1000
         self.pathToImages = pathToImages
         self.title('Smart Frame')
