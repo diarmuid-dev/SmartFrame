@@ -13,7 +13,6 @@ class SmartFrame(tk.Tk):
         self.title('Smart Frame')
         self.width = self.winfo_screenwidth()
         self.height = self.winfo_screenheight()
-        print(f'{self.width}x{self.height}')
         self.width = 1920
         self.geometry(f'{self.width}x{self.height}')
         
@@ -33,7 +32,9 @@ class SmartFrame(tk.Tk):
     def updateImage(self):
         self.image = (self.image+1)%len(self.images)
         self.displayImage()
-        
+    
+    # Convert images into a format which Tkinter can read and then update canvas
+    # to display new image
     def displayImage(self):
         tempImage = Image.open(self.pathToImages + self.images[self.image])
         tempImage = tempImage.resize((self.width,self.height))
@@ -45,9 +46,13 @@ class SmartFrame(tk.Tk):
 
 if __name__ == "__main__":
     if (not len(sys.argv) > 2):
-        print("Please run in the following format: python3 images.py \{path\} \{interval\}")
+        print("Please run in the following format: python3 images.py {path} {interval}")
         exit(0)
-    print("argv 1" + sys.argv[1])
-    print("argv 2" + sys.argv[2])
+    if (not sys.argv[2].isnumeric()):
+        print("Invalid interval, please provide an interval in seconds")
+        exit(0)
+    if (not os.path.exists(sys.argv[1])):
+        print("Please enter a valid path to the image files")
+        exit(0)
     smartFrame = SmartFrame(sys.argv[1], sys.argv[2])
     smartFrame.mainloop()
