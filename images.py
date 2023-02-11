@@ -15,7 +15,6 @@ class SmartFrame(tk.Tk):
         self.attributes('-fullscreen', True)
         self.width = self.winfo_screenwidth()
         self.height = self.winfo_screenheight()
-        self.width = 1920
         self.geometry(f'{self.width}x{self.height}')
         
         self.images = self.getImages()
