@@ -12,6 +12,7 @@ class SmartFrame(tk.Tk):
         self.interval = int(seconds)*1000
         self.pathToImages = pathToImages
         self.title('Smart Frame')
+        self.attributes('-fullscreen', True)
         self.width = self.winfo_screenwidth()
         self.height = self.winfo_screenheight()
         self.width = 1920
@@ -20,7 +21,7 @@ class SmartFrame(tk.Tk):
         self.images = self.getImages()
         self.image = -1
 
-        self.canvas = tk.Canvas(self, width=self.width, height=self.height)
+        self.canvas = tk.Canvas(self, width=self.width, height=self.height, highlightthickness=0)
         self.canvas.pack()
         
         self.image_container = self.canvas.create_image(0,0, anchor="nw",image=None)
