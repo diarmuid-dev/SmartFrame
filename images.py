@@ -63,7 +63,9 @@ class SmartFrame(tk.Tk):
     # to display new image
     def displayImage(self):
         tempImage = Image.open(self.pathToImages + self.images[self.image])
-        tempImage = tempImage.resize((self.width,self.height))
+        ogWidth, ogHeight = tempImage.size
+        ratio = ogHeight/ogWidth
+        tempImage = tempImage.resize((self.width,int(self.width*ratio)))
         self.dispImage = ImageTk.PhotoImage(tempImage)
         self.canvas.itemconfig(self.image_container,
             image=self.dispImage)
