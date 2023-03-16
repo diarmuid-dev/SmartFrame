@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from multiprocessing import current_process
 from PIL import Image, ImageTk
 import os
 import time
@@ -63,11 +64,16 @@ class SmartFrame(tk.Tk):
     # to display new image
     def displayImage(self):
         tempImage = Image.open(self.pathToImages + self.images[self.image])
-        tempImage = tempImage.resize((self.width,self.height))
+        tempImage = self.scale(self.width, tempImage)
         self.dispImage = ImageTk.PhotoImage(tempImage)
         self.canvas.itemconfig(self.image_container,
             image=self.dispImage)
-        
+            
+    def scale(width, image):
+        ogWidth, ogHeight = image.size
+        ratio = ogHeight/ogWidth
+        image = image.resize((width,int(width*ratio)))
+        return image
 
 if __name__ == "__main__":
     if (not len(sys.argv) > 2):
@@ -79,5 +85,10 @@ if __name__ == "__main__":
     if (not os.path.exists(sys.argv[1])):
         print("Please enter a valid path to the image files")
         exit(0)
+    process = current_process()
+    # report the name of the process
+    print(process.name)
+    process.name = "SmartFrame"
+    print(process.name)
     smartFrame = SmartFrame(sys.argv[1], sys.argv[2])
     smartFrame.mainloop()
