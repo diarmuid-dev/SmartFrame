@@ -69,10 +69,10 @@ class SmartFrame(tk.Tk):
         self.canvas.itemconfig(self.image_container,
             image=self.dispImage)
             
-    def scale(width, image):
+    def scale(self, width, image):
         ogWidth, ogHeight = image.size
         ratio = ogHeight/ogWidth
-        image = image.resize((width,int(width*ratio)))
+        image = image.resize(width, (int(width*ratio)))
         return image
 
 if __name__ == "__main__":
