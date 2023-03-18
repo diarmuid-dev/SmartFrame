@@ -3,6 +3,7 @@ import base64
 import socketio
 from PIL import Image
 from dotenv import load_dotenv
+from multiprocessing.connection import Client
 from aiohttp import web
 from io import BytesIO
 import pickle
@@ -37,14 +38,21 @@ class SmartFrameManager():
         active = True
 
     def doScreenOff(self):
-        os.system(f'./screen_off.sh')
+        os.system('./screen_off.sh')
 
     def doScreenOn(self):
-        os.system(f'./screen_on.sh')
+        os.system('./screen_on.sh')
+
+    def adjustScreenOffTime(self):
+        os.system(f"crontab -u mobman -l | grep -v 'perl /home/mobman/test.pl'  | crontab -u mobman -")
+        os.system("(crontab -u mobman -l ; echo '*/5 * * * * perl /home/mobman/test.pl') | crontab -u mobman -")
+
+    def adjustScreenOnTime(self):
+        os.system('./screen_on.sh')
 
     ## Launch the photo frame
     def doShutDown(self):
-        os.system(f'sudo shutdown now')
+        os.system('sudo shutdown now')
 
     ## Sync photos with google drive
     def doSyncPhotos(self):
@@ -82,6 +90,24 @@ class SmartFrameManager():
 load_dotenv()
 smart_frame_manager = SmartFrameManager()
 sio = socketio.Client()
+
+def multicast(command):
+    address = ('localhost', 6000)
+    conn = Client(address, authkey=bytes(os.getenv('multicast_key'), encoding='utf8'))
+    conn.send(command)
+    conn.close()
+
+@sio.on('prevImage')
+def start_frame():
+    multicast('prevImage')
+
+@sio.on('nextImage')
+def start_frame():
+    multicast('nextImage')
+
+@sio.on('stopFrame')
+def start_frame():
+    multicast('close')
 
 @sio.on('get_thumbnail')
 def send_thumbnail(photo_name):

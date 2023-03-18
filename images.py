@@ -1,7 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
+import threading
 from multiprocessing import current_process
+from multiprocessing.connection import Listener
 from PIL import Image, ImageTk
+from dotenv import load_dotenv
 import os
 import time
 import sys
@@ -28,11 +31,11 @@ class SmartFrame(tk.Tk):
         
         self.iterateImage()
         
-        # Create prev and next buttons
-        self.prevBtn=self.createButton(int(self.width/3), self.height, 0, 0)
-        self.canvas.tag_bind(self.prevBtn,"<Button-1>", self.prevImage)
-        self.prevBtn=self.createButton(int(self.width/3), self.height, int(self.width*2/3), 0)
-        self.canvas.tag_bind(self.prevBtn,"<Button-1>", self.prevImage)
+        # # Create prev and next buttons
+        # self.prevBtn=self.createButton(int(self.width/3), self.height, 0, 0)
+        # self.canvas.tag_bind(self.prevBtn,"<Button-1>", self.prevImage)
+        # self.prevBtn=self.createButton(int(self.width/3), self.height, int(self.width*2/3), 0)
+        # self.canvas.tag_bind(self.prevBtn,"<Button-1>", self.prevImage)
         
     # To get a transparent rectangle on Tkinter, we must make a transparent 
     # image in Pillow first then display it on the canvas
@@ -45,7 +48,8 @@ class SmartFrame(tk.Tk):
           return self.canvas.create_image(posX, posY, image=transparent, anchor='nw')
         
     def getImages(self):
-        return os.listdir(self.pathToImages)
+        files = [f for f in os.listdir(self.pathToImages) if os.path.isfile(self.pathToImages + f)]
+        return files
     
     def iterateImage(self):
         self.image = (self.image+1)%len(self.images)
@@ -72,8 +76,32 @@ class SmartFrame(tk.Tk):
     def scale(self, width, image):
         ogWidth, ogHeight = image.size
         ratio = ogHeight/ogWidth
-        image = image.resize(width, (int(width*ratio)))
+        image = image.resize((width, (int(width*ratio))))
         return image
+
+    def close(self):
+        self.quit()
+
+    ## Listen on a local socket for communication from the Manager
+    def command(self):
+        address = ('localhost', 6000)     # family is deduced to be 'AF_INET'
+        listener = Listener(address, authkey=bytes(os.getenv('multicast_key'), encoding='utf8'))
+        while True:
+            conn = listener.accept()
+            print('connection accepted from', listener.last_accepted)
+            while True:
+                msg = conn.recv()
+                print(msg)
+                # do something with msg
+                conn.close()
+                if msg == 'close':
+                    listener.close()
+                    self.close()
+                elif msg == 'nextImage':
+                    self.nextImage(None)
+                elif msg == 'prevImage':
+                    self.prevImage(None)
+                break
 
 if __name__ == "__main__":
     if (not len(sys.argv) > 2):
@@ -85,10 +113,9 @@ if __name__ == "__main__":
     if (not os.path.exists(sys.argv[1])):
         print("Please enter a valid path to the image files")
         exit(0)
-    process = current_process()
-    # report the name of the process
-    print(process.name)
-    process.name = "SmartFrame"
-    print(process.name)
+    load_dotenv()
     smartFrame = SmartFrame(sys.argv[1], sys.argv[2])
+    x = threading.Thread(target=smartFrame.command)
+    x.start()
     smartFrame.mainloop()
+    print('running!')
