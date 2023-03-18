@@ -33,7 +33,7 @@ class SmartFrameManager():
 
     ## Launch the photo frame
     def doLaunch(self):
-        os.system(f'sudo xinit ./start.sh')
+        os.system(f'sudo xinit ./start.sh --pointerMode 2')
         active = True
 
     def doScreenOff(self):
